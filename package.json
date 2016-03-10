@@ -1,10 +1,14 @@
 {
-    "name": "MQTT2Thingspeak",
-    "description": "Subscribe to a single MQTT topic and push message to field1 on a Thingspeak channel",
+    "name": "mqtt2thingspeak",
+    "description": "Subscribes to MQTT topics and pushes messages to Thingspeak channel fields based on a map of topic to channel/feed.",
     "version": "0.0.0",
     "private": true,
     "scripts": {
         "start": "node ./index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/chatch/mqtt2thingspeak.git"
     },
     "keywords": [
     "mqtt",
@@ -12,6 +16,7 @@
     "subscribe"
   ],
     "dependencies": {
+        "js-yaml": "~3.5.4",
         "mqtt": "~1.7.3",
         "thingspeakclient": "~0.4.0"
     }

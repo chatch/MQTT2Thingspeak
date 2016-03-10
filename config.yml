@@ -1,0 +1,17 @@
+mqtt:
+  broker:
+    host: 172.17.0.2
+    port: 1883
+
+thingspeak:
+  channels:
+    11111:
+      write_key: 'xxxxxxxxxxxxxxxx'
+
+topics:
+  /air/1/pm2.5:
+    channel: 11111
+    field: field1
+  /air/1/pm10:
+    channel: 11111
+    field: field2

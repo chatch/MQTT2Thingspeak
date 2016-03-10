@@ -1,15 +1,60 @@
-"use strict";
+'use strict';
 
 let mqtt = require('mqtt'),
-    ThingSpeakClient = require('thingspeakclient');
+    ThingSpeakClient = require('thingspeakclient'),
+    fs = require('fs'),
+    yaml = require('js-yaml');
 
-const MQTT_HOST = process.env.MQTT_HOST,
-    MQTT_TOPIC = process.env.MQTT_TOPIC,
-    THINGSPEAK_WRITE_KEY = process.env.THINGSPEAK_WRITE_KEY,
-    THINGSPEAK_CHANNEL = parseInt(process.env.THINGSPEAK_CHANNEL);
+const CONFIG = yaml.load(fs.readFileSync('config.yml', 'utf8')),
+    TOPICS = CONFIG.topics;
 
-function writeThingspeak(tsClient, fields) {
-    tsClient.updateChannel(THINGSPEAK_CHANNEL, fields, function (err, resp) {
+//
+// Setup the MQTT client
+//
+let mqClient = mqtt.connect('mqtt://${CONFIG.mqtt.host}:${CONFIG.mqtt.port}');
+
+mqClient.on('error', function (err) {
+    console.error('mqtt error: ' + err);
+});
+
+mqClient.on('connect', function () {
+    console.log('Connected to broker');
+});
+
+//
+// Setup the Thingspeak client
+//
+let tsClient = new ThingSpeakClient();
+
+let channels = CONFIG.thingspeak.channels;
+for (let channel in channels) {
+    tsClient.attachChannel(parseInt(channel), {
+        writeKey: channels[channel].write_key
+    }, function (err) {
+        if (err)
+            console.error('failed to attach: ' + err);
+    });
+}
+
+//
+// Subscribe to all configured topics
+//
+for (let topic in TOPICS) {
+    console.log('Subscribing to ' + topic);
+    mqClient.subscribe(topic);
+}
+
+mqClient.on('message', function (topic, message) {
+    console.log(topic + ": '" + message + "'");
+    let tsChannel = TOPICS[topic].channel;
+    let tsField = TOPICS[topic].field;
+    writeThingspeak(tsClient, tsChannel, tsField, message);
+});
+
+function writeThingspeak(tsClient, tsChannel, tsField, message) {
+    let fields = {};
+    fields[tsField] = message;
+    tsClient.updateChannel(tsChannel, fields, function (err, resp) {
         if (!err && resp > 0) {
             console.log('update successfully. Entry number was: ' + resp);
         } else if (err) {
@@ -17,36 +62,3 @@ function writeThingspeak(tsClient, fields) {
         }
     });
 }
-
-if (isNaN(THINGSPEAK_CHANNEL)) {
-    console.error('thingspeak channel not a number');
-    process.exit(-1);
-}
-
-let mqClient = mqtt.connect('mqtt://' + MQTT_HOST);
-
-mqClient.on('error', function (err) {
-    console.error('mqtt error: ' + err);
-});
-
-mqClient.on('connect', function () {
-    console.log('Connected to broker ' + MQTT_HOST);
-});
-
-let tsClient = new ThingSpeakClient();
-tsClient.attachChannel(THINGSPEAK_CHANNEL, {
-    writeKey: THINGSPEAK_WRITE_KEY
-}, function (err) {
-    if (err) {
-        console.error('failed to attach: ' + err);
-    }
-});
-
-console.log('Subscribing to ' + MQTT_TOPIC);
-mqClient.subscribe(MQTT_TOPIC);
-mqClient.on('message', function (topic, message) {
-    console.log(topic + ": '" + message + "'");
-    writeThingspeak(tsClient, {
-        "field1": message
-    });
-});

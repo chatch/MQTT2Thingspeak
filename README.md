@@ -1,4 +1,4 @@
-# MQTT2Thingspeak
-Subscribe to a single MQTT topic and push the message to field1 on a Thingspeak channel.
+# mqtt2thingspeak
+Subscribes to MQTT topics and pushes messages to Thingspeak channel fields based on a map of topic to channel/feed.
 
-Set environment variables (see setenv.sh) for MQTT broker and topic and the Thingspeak channel and write key. 
+Define map of topics to channel/field combinations in config.yml.
