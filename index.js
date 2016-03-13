@@ -9,11 +9,20 @@ const CONFIG = yaml.load(fs.readFileSync('config.yml', 'utf8')),
     TOPICS = CONFIG.topics;
 
 //
+// Environment variable overrides
+//
+let envOrCfg = function (envVar, cfgVal) {
+    return process.env[envVar] ? process.env[envVar] : cfgVal;
+}
+const MQTT_HOST = envOrCfg('MQTT_HOST', CONFIG.mqtt.broker.host);
+const MQTT_PORT = envOrCfg('MQTT_PORT', CONFIG.mqtt.broker.port);
+
+//
 // Setup the MQTT client
 //
 let mqOpts = {
-    host: CONFIG.mqtt.host,
-    port: CONFIG.mqtt.port
+    host: MQTT_HOST,
+    port: MQTT_PORT
 };
 let mqClient = mqtt.connect(mqOpts);
 
@@ -22,7 +31,7 @@ mqClient.on('error', function (err) {
 });
 
 mqClient.on('connect', function () {
-    console.log('Connected to broker');
+    console.log('Connected to broker ' + MQTT_HOST);
 });
 
 //
