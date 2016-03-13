@@ -11,7 +11,11 @@ const CONFIG = yaml.load(fs.readFileSync('config.yml', 'utf8')),
 //
 // Setup the MQTT client
 //
-let mqClient = mqtt.connect('mqtt://${CONFIG.mqtt.host}:${CONFIG.mqtt.port}');
+let mqOpts = {
+    host: CONFIG.mqtt.host,
+    port: CONFIG.mqtt.port
+};
+let mqClient = mqtt.connect(mqOpts);
 
 mqClient.on('error', function (err) {
     console.error('mqtt error: ' + err);
