@@ -15,3 +15,9 @@ topics:
   /air/1/pm10:
     channel: 11111
     field: field2
+  /air/1/pm/csv:
+    type: csv
+    channel: 11111
+    fields:
+      1: field1
+      2: field2
